@@ -77,7 +77,7 @@ class Api {
     };
 
     async refreshTokens(refreshToken: string) {
-        const response = await this._axiosInstance.post(Consts.RefreshTokens, {
+        const response = await this._axiosInstance.post(Consts.RefreshTokensEndpoint, {
             refreshToken: refreshToken
         });
         const data = response.data;
@@ -93,15 +93,42 @@ class Api {
     }
 
     async getVirtualItemsByAppId() {
-        return await this._axiosInstance.post(Consts.GetVirtualItemsByAppId, {
+        return await this._axiosInstance.post(Consts.GetVirtualItemsByAppIdEndpoint, {
             data: {
                 appPackageName: Consts.ProjectId
             }
         });
     };
 
+    async getUserWallets() {
+        return await this._axiosInstance.post(Consts.GetUserWalletsEndpoint, {
+            data: {
+                version: 2
+            }
+        });
+    };
+
+    async isUserHavePrimaryWallet() {
+        return await this._axiosInstance.post(Consts.IsUserHavePrimaryWalletEndpoint, {
+            data: {
+                version: 2
+            }
+        });
+    };
+
+    async createUserWallet(password: string) {
+        const authData = await Auth.getAuthData();
+        return await this._axiosInstance.post(Consts.CreateWalletEndpoint, {
+            data: {
+                token: authData.idToken,
+                password: password,
+                version: 2
+            }
+        });
+    };
+
     async getUserCurrencies() {
-        return await this._axiosInstance.post(Consts.GetUserCurrencies, {
+        return await this._axiosInstance.post(Consts.GetUserCurrenciesEndpoint, {
             data: {}
         });
     };

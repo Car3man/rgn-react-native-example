@@ -1,10 +1,11 @@
 import {useEffect, useState} from "react";
-import {Button, Linking, StyleSheet, Text, View} from "react-native";
+import {Button, Linking, Text} from "react-native";
 import Loading from "../components/Loading";
 import HttpHelper from "../utils/HttpHelper";
 import Utils from "../utils/Utils";
 import Api from "../utils/Api";
 import Auth, {AuthData} from "../utils/Auth";
+import ViewContainer from "../components/ViewContainer";
 
 export const AuthScreen = ({navigation}: any) => {
     const [isLoading, setLoading] = useState(true);
@@ -24,26 +25,20 @@ export const AuthScreen = ({navigation}: any) => {
         navigation.replace("Home");
     };
 
-    const onSignInAnonymouslyButtonClick = async () => {
-        try {
-            setLoading(true);
+    const handleLoginAnonymouslyButton = async () => {
+        const { customToken } = await Api.signUpAnonymously();
+        const { userId, idToken, refreshToken } = await Api.signInWithCustomToken(customToken);
+        await Auth.setAuthData({
+            userId: userId,
+            idToken: idToken,
+            refreshToken: refreshToken,
+        } as AuthData);
+        navigation.replace("Home");
 
-            const { customToken } = await Api.signUpAnonymously();
-            const { userId, idToken, refreshToken } = await Api.signInWithCustomToken(customToken);
-            await Auth.setAuthData({
-                userId: userId,
-                idToken: idToken,
-                refreshToken: refreshToken,
-            } as AuthData);
-            navigation.replace("Home");
-
-            setLoading(false);
-        } catch (error) {
-            console.log("sign up anonymously error");
-        }
+        setLoading(false);
     };
 
-    const onSignInByEmailButtonClick = async () => {
+    const handleLoginByEmailButton = async () => {
         await Linking.openURL("https://rgn-auth.web.app/?url_redirect=rgnreactnative&customToken=true");
     };
 
@@ -86,21 +81,12 @@ export const AuthScreen = ({navigation}: any) => {
     }
 
     return (
-        <View style={styles.container}>
+        <ViewContainer>
             <Text>Not authorized</Text>
-            <Button title="Login Anonymously" onPress={onSignInAnonymouslyButtonClick}/>
-            <Button title="Login By Email" onPress={onSignInByEmailButtonClick}/>
-        </View>
+            <Button title="Login Anonymously" onPress={handleLoginAnonymouslyButton}/>
+            <Button title="Login By Email" onPress={handleLoginByEmailButton}/>
+        </ViewContainer>
     );
 };
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 10
-    }
-});
 
 export default AuthScreen;
