@@ -93,9 +93,9 @@ android {
 
     compileSdkVersion rootProject.ext.compileSdkVersion
 
-    namespace "com.getready.reactnativeapp"
+    namespace "io.getready.leap"
     defaultConfig {
-        applicationId "com.getready.reactnativeapp"
+        applicationId "io.getready.leap"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

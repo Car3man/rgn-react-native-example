@@ -1,5 +1,5 @@
 export default class Consts {
-    static ProjectId = "jXwpQx2Qyio20XPUkWjM";
+    static ProjectId = "BOIPzHkOu95pVBHPPvZ5";
     static IsEmulator = false;
 
     static SignInWithCustomTokenEndpoint = this.IsEmulator ?
