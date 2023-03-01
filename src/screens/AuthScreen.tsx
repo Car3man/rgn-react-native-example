@@ -83,7 +83,6 @@ export const AuthScreen = ({navigation}: any) => {
     return (
         <ViewContainer>
             <Text>Not authorized</Text>
-            <Button title="Login Anonymously" onPress={handleLoginAnonymouslyButton}/>
             <Button title="Login By Email" onPress={handleLoginByEmailButton}/>
         </ViewContainer>
     );
