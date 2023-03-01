@@ -1,11 +1,10 @@
 import {useEffect, useState} from "react";
 import {Button, Linking, StyleSheet, Text, View} from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import axios from "axios";
 import Loading from "../components/Loading";
 import HttpHelper from "../utils/HttpHelper";
 import Utils from "../utils/Utils";
-import ApiConsts from "../utils/ApiConsts";
+import Api from "../utils/Api";
+import Auth, {AuthData} from "../utils/Auth";
 
 export const AuthScreen = ({navigation}: any) => {
     const [isLoading, setLoading] = useState(true);
@@ -16,47 +15,27 @@ export const AuthScreen = ({navigation}: any) => {
         }
 
         const customToken = HttpHelper.getQueryParam(url, "token");
-        await signInWithCustomToken(customToken);
+        const { userId, idToken, refreshToken } = await Api.signInWithCustomToken(customToken);
+        await Auth.setAuthData({
+            userId: userId,
+            idToken: idToken,
+            refreshToken: refreshToken,
+        } as AuthData);
+        navigation.replace("Home");
     };
 
-    const signInWithCustomToken = async (customToken: string) => {
+    const onSignInAnonymouslyButtonClick = async () => {
         try {
             setLoading(true);
 
-            const response = await axios.post(ApiConsts.SignInWithCustomTokenEndpoint, {
-                customToken: customToken,
-            });
-
-            const data = response.data;
-            const userId = data.userId as string;
-            const idToken = data.idToken as string;
-
-            const authData = {
+            const { customToken } = await Api.signUpAnonymously();
+            const { userId, idToken, refreshToken } = await Api.signInWithCustomToken(customToken);
+            await Auth.setAuthData({
                 userId: userId,
                 idToken: idToken,
-            };
-
-            await AsyncStorage.setItem("authorization", JSON.stringify(authData));
-
-            setLoading(false);
+                refreshToken: refreshToken,
+            } as AuthData);
             navigation.replace("Home");
-            console.log("authentication data saved");
-        } catch (error) {
-            console.log("sign in with custom token error" + error);
-        }
-    };
-
-    const signUpAnonymously = async () => {
-        try {
-            setLoading(true);
-
-            const response = await axios.post(ApiConsts.SignUpAnonymouslyEndpoint, {
-                appPackageName: ApiConsts.ProjectId
-            });
-            const data = response.data;
-            const customToken = data.customToken as string;
-
-            await signInWithCustomToken(customToken);
 
             setLoading(false);
         } catch (error) {
@@ -64,21 +43,21 @@ export const AuthScreen = ({navigation}: any) => {
         }
     };
 
-    const signInEmailPassword = () => {
-        Linking.openURL("https://rgn-auth.web.app/?url_redirect=rgnreactnative&customToken=true");
+    const onSignInByEmailButtonClick = async () => {
+        await Linking.openURL("https://rgn-auth.web.app/?url_redirect=rgnreactnative&customToken=true");
     };
 
     useEffect(() => {
-        Linking.getInitialURL().then(url => {
+        Linking.getInitialURL().then(async url => {
             if (url === null) {
                 return;
             }
 
-            onDeepLink(url);
+            await onDeepLink(url);
         });
 
-        Linking.addEventListener('url', handler => {
-            onDeepLink(handler.url);
+        Linking.addEventListener('url', async handler => {
+            await onDeepLink(handler.url);
         });
 
         return () => {
@@ -88,9 +67,9 @@ export const AuthScreen = ({navigation}: any) => {
 
     useEffect(() => {
         setLoading(true);
-        AsyncStorage.getItem("authorization")
+        Auth.getAuthData()
             .then((authData) => {
-                if (authData) {
+                if (authData.userId) {
                     navigation.replace("Home");
                 }
             })
@@ -109,8 +88,8 @@ export const AuthScreen = ({navigation}: any) => {
     return (
         <View style={styles.container}>
             <Text>Not authorized</Text>
-            <Button title="Login Anonymously" onPress={signUpAnonymously}/>
-            <Button title="Login By Email" onPress={signInEmailPassword}/>
+            <Button title="Login Anonymously" onPress={onSignInAnonymouslyButtonClick}/>
+            <Button title="Login By Email" onPress={onSignInByEmailButtonClick}/>
         </View>
     );
 };
